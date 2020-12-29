@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn import tree
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
+from sklearn.linear_model import Perceptron
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
 
 ## read data set
 #       train
@@ -65,19 +68,29 @@ people_tst['Cabin_second'] = Cabin_tst[:, 1]
 people_tst['Cabin_third'] = Cabin_tst[:, 2]
 people_tst = people_tst.drop('Cabin', axis=1)
 ## convert to list
-people_tr = people_tr.fillna(0)
-people_tst = people_tst.fillna(0)
-# people_tr.drop(['Cabin_first', 'Cabin_second', 'Cabin_third'], axis=1)
-# people_tst.drop(['Cabin_first', 'Cabin_second', 'Cabin_third'], axis=1)
-print(people_tr.head())
+
+mod = people_tr.mode().iloc[0]
+people_tr = people_tr.fillna(mod)
+people_tst = people_tst.fillna(mod)
+
+# all_features = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+# # good_features = set(clf.feature_importances_.argsort()[-8:])
+# bad_features = [12, 5, 0, 8, 4, 9, 7, 3, 6, 1, 2, 11, 10]
+# bad_features = [12, 5, 0, 8, 4, 9, 7, 3]
+#
+# features_name = people_tr.columns
+# for i in bad_features:
+#     people_tr = people_tr.drop(features_name[i], axis=1)
+#     people_tst = people_tst.drop(features_name[i], axis=1)
+# print(people_tr.columns)
+
 X_train = people_tr.values.tolist()
 Y_train = train_labels['Survived'].tolist()
 
 X_test = people_tst.values.tolist()
 Y_test = test_labels['Survived'].tolist()
-
 ## create model
-clf = tree.DecisionTreeClassifier(criterion="entropy",min_samples_split=2)
+clf = tree.DecisionTreeClassifier(criterion="entropy", min_samples_split=40,max_depth=1)
 ## fit model
 clf = clf.fit(np.array(X_train, dtype=np.float32), Y_train)
 
@@ -90,7 +103,7 @@ if predict_TestOrTrain == "test":
     for i in range(len(predicts)):
         if predicts[i] == Y_train[i]:
             matched += 1
-    print("decision tree accuracy on test : "+str(matched/len(Y_train)))
+    print("decision tree accuracy on test : " + str(matched / len(Y_train)))
 elif predict_TestOrTrain == "train":
     # compute accuracy test
     predicts = clf.predict(np.array(X_test, dtype=np.float32))
@@ -98,7 +111,7 @@ elif predict_TestOrTrain == "train":
     for i in range(len(predicts)):
         if predicts[i] == Y_test[i]:
             matched += 1
-    print("decision tree accuracy on train : "+str(matched/len(Y_test)))
+    print("decision tree accuracy on train : " + str(matched / len(Y_test)))
 else:
     # compute accuracy train
     predicts = clf.predict(np.array(X_train, dtype=np.float32))
@@ -106,21 +119,53 @@ else:
     for i in range(len(predicts)):
         if predicts[i] == Y_train[i]:
             matched += 1
-    print("decision tree accuracy on train : "+str(matched/len(Y_train)))
+    print("decision tree accuracy on train : " + str(matched / len(Y_train)))
     # compute accuracy test
     predicts = clf.predict(np.array(X_test, dtype=np.float32))
     matched = 0
     for i in range(len(predicts)):
         if predicts[i] == Y_test[i]:
             matched += 1
-    print("decision tree accuracy on test : "+str(matched/len(Y_test)))
+    print("decision tree accuracy on test : " + str(matched / len(Y_test)))
+
+# fig = plt.figure(figsize=(20, 10))
+# tree.plot_tree(clf, fontsize=10)
+# plt.show()
 
 
-import matplotlib.pyplot as plt
-fig = plt.figure(figsize=(20,10))
-tree.plot_tree(clf, fontsize=5)
-plt.show()
-# from sklearn.linear_model import Perceptron
-# clf = Perceptron(tol=1e-3)
-# clf.fit(X_train, Y_train)
-# print(clf.score(X_train,Y_train))
+s_Scaler = preprocessing.StandardScaler().fit(X_train)
+X_train = s_Scaler.transform(X_train)
+X_test = s_Scaler.transform(X_test)
+# clf = Perceptron(tol=1e-5, random_state=1, shuffle=True, n_iter_no_change=10)
+perc_clf = Perceptron(tol=1e-5, random_state=0)
+perc_clf.fit(X_train, Y_train)
+# print(perc_clf.coef_)
+print("perceptron accuracy on train : " + str(perc_clf.score(X_train, Y_train)))
+print("perceptron accuracy on test : " + str(perc_clf.score(X_test, Y_test)))
+
+
+# select good features
+all_features = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+good_features = set(clf.feature_importances_.argsort()[-5:])
+bad_features = list(all_features.difference(good_features))
+
+features_name = people_tr.columns
+for i in bad_features:
+    people_tr = people_tr.drop(features_name[i], axis=1)
+    people_tst = people_tst.drop(features_name[i], axis=1)
+print(people_tr.columns)
+X_train = people_tr.values.tolist()
+Y_train = train_labels['Survived'].tolist()
+
+X_test = people_tst.values.tolist()
+Y_test = test_labels['Survived'].tolist()
+
+s_Scaler = preprocessing.StandardScaler().fit(X_train)
+X_train = s_Scaler.transform(X_train)
+X_test = s_Scaler.transform(X_test)
+# clf = Perceptron(tol=1e-5, random_state=1, shuffle=True, n_iter_no_change=10)
+clf = Perceptron(tol=1e-5, random_state=0)
+clf.fit(X_train, Y_train)
+print("with feature selection : ")
+print("perceptron accuracy on train : " + str(clf.score(X_train, Y_train)))
+print("perceptron accuracy on test : " + str(clf.score(X_test, Y_test)))
