@@ -80,7 +80,7 @@ Y_train = train_labels['Survived'].tolist()
 X_test = people_tst.values.tolist()
 Y_test = test_labels['Survived'].tolist()
 ## create model
-clf = tree.DecisionTreeClassifier(criterion="entropy", min_samples_split=40,max_depth=1)
+clf = tree.DecisionTreeClassifier(criterion="entropy", min_samples_split=65)
 ## fit model
 clf = clf.fit(np.array(X_train, dtype=np.float32), Y_train)
 
@@ -126,11 +126,10 @@ else:
 s_Scaler = preprocessing.StandardScaler().fit(X_train)
 X_train = s_Scaler.transform(X_train)
 X_test = s_Scaler.transform(X_test)
-# clf = Perceptron(tol=1e-5, random_state=1, shuffle=True, n_iter_no_change=10)
-perc_clf = Perceptron(tol=1e-5, random_state=0)
+perc_clf = Perceptron(tol=1e-5, random_state=50, shuffle=True, n_iter_no_change=10)
+# perc_clf = Perceptron(tol=1e-5, random_state=0)
 perc_clf.fit(X_train, Y_train)
-print(people_tr.columns)
-print(perc_clf.coef_)
+
 print("perceptron accuracy on train : " + str(perc_clf.score(X_train, Y_train)))
 print("perceptron accuracy on test : " + str(perc_clf.score(X_test, Y_test)))
 
@@ -144,7 +143,7 @@ features_name = people_tr.columns
 for i in bad_features:
     people_tr = people_tr.drop(features_name[i], axis=1)
     people_tst = people_tst.drop(features_name[i], axis=1)
-print(people_tr.columns)
+
 X_train = people_tr.values.tolist()
 Y_train = train_labels['Survived'].tolist()
 
@@ -154,8 +153,8 @@ Y_test = test_labels['Survived'].tolist()
 s_Scaler = preprocessing.StandardScaler().fit(X_train)
 X_train = s_Scaler.transform(X_train)
 X_test = s_Scaler.transform(X_test)
-# clf = Perceptron(tol=1e-5, random_state=1, shuffle=True, n_iter_no_change=10)
-clf = Perceptron(tol=1e-5, random_state=0)
+clf = Perceptron(tol=1e-5, random_state=45, shuffle=True, n_iter_no_change=10)
+# clf = Perceptron(tol=1e-8, random_state=0)
 clf.fit(X_train, Y_train)
 print("with feature selection : ")
 print("perceptron accuracy on train : " + str(clf.score(X_train, Y_train)))
